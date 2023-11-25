@@ -146,11 +146,11 @@
     <ClCompile Include="TestBed.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="basic.frag" />
-    <None Include="basic.vert" />
+    <None Include="gear.frag" />
+    <None Include="gear.vert" />
     <None Include="packages.config" />
-    <None Include="strip.frag" />
-    <None Include="strip.vert" />
+    <None Include="needle.frag" />
+    <None Include="needle.vert" />
     <None Include="texture.frag" />
     <None Include="texture.vert" />
   </ItemGroup>

@@ -57,11 +57,11 @@ int main(void)
         return 3;
     }
 
-    unsigned int VAO[2];
-    glGenVertexArrays(2, VAO);
+    unsigned int VAO[3];
+    glGenVertexArrays(3, VAO);
 
-    unsigned int VBO[2];
-    glGenBuffers(2, VBO);
+    unsigned int VBO[3];
+    glGenBuffers(3, VBO);
 
 
     // --------------- TEKSTURA BRZINOMETRA  --------------- 
@@ -104,26 +104,14 @@ int main(void)
 
     // --------------- KAZALJKA  --------------- 
 
+    // boje red i blue
     float r = 0.0;
     float b = 1.0;
 
-    // nove koordinate kazaljke nakon promene brzine
-    float a1 = 0.0;
-    float b1 = 0.0;
-
-
-    unsigned int stripShader = createShader("strip.vert", "strip.frag");
+    unsigned int stripShader = createShader("needle.vert", "needle.frag");
     unsigned int uR = glGetUniformLocation(stripShader, "uR");
     unsigned int uB = glGetUniformLocation(stripShader, "uB");
     GLint uniTrans = glGetUniformLocation(stripShader, "trans");
-
-
-    /*float needleVertices[] = {
-        -0.8, -0.7,        
-        -0.6, -0.7,        
-        -0.8, -0.75,       
-        -0.6, -0.75,        
-    };*/
 
     float needleVertices[] = {
        -0.2, 0.0,
@@ -136,6 +124,37 @@ int main(void)
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(needleVertices), needleVertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+
+    // --------------- LAMPICA ZA STEPEN PRENOSA  --------------- 
+
+    float gearR = 1.0;
+    float gearG = 0.0;
+    float gearB = 0.0;
+
+    unsigned int gearShader = createShader("gear.vert", "gear.frag");
+    unsigned int uGearR = glGetUniformLocation(gearShader, "uGearR");
+    unsigned int uGearG = glGetUniformLocation(gearShader, "uGearG");
+    unsigned int uGearB = glGetUniformLocation(gearShader, "uGearB");
+
+    float gearLampVertices[] = {
+       -0.6, 0.6,
+       -0.5,  0.6,
+       -0.6, 0.5,
+       -0.5,  0.5
+    };
+
+    glBindVertexArray(VAO[2]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(gearLampVertices), gearLampVertices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -188,23 +207,18 @@ int main(void)
 
 
         float speed = car.getSpeed();
-        std::cout << speed << "\n";
+        std::cout << "Speed: " << speed << "\n";
         // 180/100 znaci da brzinomer ima 100 podeoka rasporedjeni na polukrugu od 180 stepeni, ugao kazaljke je brzina * podeok 
        
         float minAngle = 0.0;
         float maxAngle = 180.0;
+        // oduzimanje "- (180.00 / 100.00) / 2" da se centar kazaljke postavi na podeok
         float angle = speed * (180.00 / 100.00) - (180.00 / 100.00) / 2;
-        //std::cout << "Ugao" << angle << "\n";
-
-
-        // 0.2 je poluprecnik brzinometra
-        // x, y su odseci na osama od novog ugla kazaljke, pomocu njih racunamo pomeraj 
-       /* float x = 0.2 * cos(180 - angle);
-        float y = 0.2 * sin(180 - angle);
-        std::cout << "Odsecci x i y " << x << " " << y << "\n";*/
 
         glm::mat4 trans = glm::mat4(1.0f);
+        // skaliranje u odnosu na dimenzije ekrana 1200/600
         trans = glm::scale(trans, glm::vec3(1.0f, 1200.f/600.0f, 1.0f));
+        // translacija na brzinomer
         trans = glm::translate(trans, glm::vec3(-0.6f, -0.38f, 0));
         trans = glm::rotate(
             trans,
@@ -213,32 +227,9 @@ int main(void)
         );
         trans = glm::scale(trans, glm::vec3(1.0, 0.2, 1.0f));
 
-        //trans = glm::translate(trans, glm::vec3(0.8f, 0.5f, 0.0f));
-
         glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(trans));
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-
-        /*if (angle < 90) {
-            a1 = -0.8 + (0.2 - x);
-            b1 = -0.75 - y;
-        }
-        else {
-            a1 = -0.8 + (0.2 - x);
-            b1 = -0.75 - y;
-        }*/
-        /*a1 += 0.05 * previous_speed;
-        b1 += 0.05 * previous_speed;*/
-        /*if (angle < 90) {
-            a1 = 0.2 - abs(y);
-            b1 = y;
-        }
-        else {
-            a1 = -0.8 + (0.2 - x);
-            b1 = -0.75 - y;
-        }*/
-        //std::cout << "Nove pozicije a1 i b1 " << a1 << " " << b1 << "\n";
 
         // postavka boje kazaljke
         if (speed > 30) {
@@ -250,6 +241,40 @@ int main(void)
             b = 1.0;
         }
 
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        glUseProgram(0);
+
+        // LAMPICA ZA STEPEN PRENOSA BRZINE
+
+        glUseProgram(gearShader);
+        glBindVertexArray(VAO[2]);
+
+        glUniform1f(uGearR, gearR);
+        glUniform1f(uGearG, gearG);
+        glUniform1f(uGearB, gearB);
+
+
+        int gear = car.getGear();
+        std::cout << "Gear " << gear << "\n";
+
+        if (gear == 1) {
+            gearR = abs(sin(glfwGetTime())); gearG = 0.0; gearB = 0.0;
+        }
+        else if (gear == 2) {
+            gearR = abs(sin(glfwGetTime())); gearG = abs(sin(glfwGetTime())); gearB = 0.0;
+        }
+        else if (gear == 3) {
+            gearR = abs(sin(glfwGetTime())); gearG = 0.0; gearB = abs(sin(glfwGetTime()));
+        }
+        else if (gear == 4) {
+            gearR = 0.0; gearG = 0.0; gearB = abs(sin(glfwGetTime()));
+        }
+        else if (gear == 5) {
+            gearR = 0.0; gearG = abs(sin(glfwGetTime())); gearB = 0.0;
+        }
+
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         glfwPollEvents();
 
