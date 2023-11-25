@@ -5,11 +5,11 @@ layout(location = 1) in vec3 inCol;
 out vec3 chCol;
 
 uniform mat4 trans;
-uniform vec2 uPos;
+uniform float uPosX;
 
 
 void main()
 {
-	gl_Position = trans * vec4(inPos + uPos, 0.0, 1.0);
+	gl_Position = trans * vec4(inPos.x + uPosX, inPos.y, 0.0, 1.0);
 	chCol = inCol;
 }

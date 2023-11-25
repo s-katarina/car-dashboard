@@ -59,11 +59,11 @@ int main(void)
         return 3;
     }
 
-    unsigned int VAO[7];
-    glGenVertexArrays(7, VAO);
+    unsigned int VAO[9];
+    glGenVertexArrays(9, VAO);
 
-    unsigned int VBO[7];
-    glGenBuffers(7, VBO);
+    unsigned int VBO[9];
+    glGenBuffers(9, VBO);
 
 
     // --------------- TEKSTURA BRZINOMETRA  --------------- 
@@ -252,9 +252,10 @@ int main(void)
     glBindVertexArray(0);
 
     // ----- KRUG -----
-    unsigned int circleShader = createShader("progressBar.vert", "circle.frag");
+    unsigned int circleShader = createShader("circle.vert", "circle.frag");
 
     GLint uniCircleTrans = glGetUniformLocation(circleShader, "trans");
+    unsigned int uCirclePosX = glGetUniformLocation(circleShader, "uPosX");
 
     float circle[CRES * 2 + 4]; // +4 je za x i y koordinate centra kruga, i za x i y od nultog ugla
     float r = 0.1; 
@@ -275,10 +276,98 @@ int main(void)
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+
+    // --------------- TEKSTURA POKAZIVACA PRAVCA  --------------- 
+
+
+    unsigned rightIndicatorTexture = loadImageToTexture("res/rightIndicator.png");
+    glBindTexture(GL_TEXTURE_2D, rightIndicatorTexture);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//S = U = X    GL_REPEAT, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);// T = V = Y
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);   //GL_NEAREST, GL_LINEAR
+    glBindTexture(GL_TEXTURE_2D, 0);
+    //unsigned uTexLoc = glGetUniformLocation(textureShader, "uTex");
+    //glUniform1i(uTexLoc, 0); // Indeks teksturne jedinice (sa koje teksture ce se citati boje)
+
+    /*float leftIndicatorVertices[] = {
+         0.4, 0.9,          0.0, 1.0,
+         0.6, 0.9,	        1.0, 1.0,
+         0.4, 0.7,	        0.0, 0.0,
+         0.6, 0.7,	        1.0, 0.0,
+    };*/
+
+    float rightIndicatorVertices[] = {
+         0.7, 0.9,          0.0, 1.0,
+         0.9, 0.9,	        1.0, 1.0,
+         0.7, 0.7,	        0.0, 0.0,
+         0.9, 0.7,	        1.0, 0.0,
+    };
+
+    glBindVertexArray(VAO[7]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[7]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(rightIndicatorVertices), rightIndicatorVertices, GL_STATIC_DRAW);
+
+    // na lokaciju 0 (za ulaz u vertex shader) idu koordinate
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(0));
+    glEnableVertexAttribArray(0);
+    // na lokaciju 1 idu koordinate teksture pridruzene temenu 
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+
+    unsigned leftIndicatorTexture = loadImageToTexture("res/leftIndicator.png");
+    glBindTexture(GL_TEXTURE_2D, leftIndicatorTexture);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);//S = U = X    GL_REPEAT, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);// T = V = Y
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);   //GL_NEAREST, GL_LINEAR
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    float leftIndicatorVertices[] = {
+         0.4, 0.9,          0.0, 1.0,
+         0.6, 0.9,	        1.0, 1.0,
+         0.4, 0.7,	        0.0, 0.0,
+         0.6, 0.7,	        1.0, 0.0,
+    };
+
+    glBindVertexArray(VAO[8]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[8]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(leftIndicatorVertices), leftIndicatorVertices, GL_STATIC_DRAW);
+
+    // na lokaciju 0 (za ulaz u vertex shader) idu koordinate
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(0));
+    glEnableVertexAttribArray(0);
+    // na lokaciju 1 idu koordinate teksture pridruzene temenu 
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
     
     startSimulation(&car);
+
     float speedAmount = 0;
 
+    float circlePositionX = 0;
+    // krug se krece tako da je podesena granica displeja umanjena za poluprecnik kruga
+    float circleBoundRight = 0.3 - r;
+    float circleBoundLeft = -0.3 + r;
+    float circleStep = 0.0001;
+
+    bool rightIndicatorOn = false;
+    bool leftIndicatorOn = false;    
     
     glClearColor(1, 1, 1, 1);
     
@@ -486,18 +575,87 @@ int main(void)
         
         glUseProgram(circleShader);
         glBindVertexArray(VAO[6]);
+
+        glUniform1f(uCirclePosX, circlePositionX);
+
         glm::mat4 transCircle = glm::mat4(1.0f);
         transCircle = glm::translate(transCircle, glm::vec3(0.4f, -0.4f, 0));
         transCircle = glm::scale(transCircle, glm::vec3(1.0f, 1200.0f/600.0f, 1.0f));
         glUniformMatrix4fv(uniCircleTrans, 1, GL_FALSE, glm::value_ptr(transCircle));
         glDrawArrays(GL_TRIANGLE_FAN, 0, sizeof(circle) / (2 * sizeof(float)));
 
+        // U svakoj iteraciji render petlje se krug pomera za step
+        circlePositionX += circleStep;
+        // ako krug dodje do leve ili desne granice obrce se znak step-a, znaci da se krece u suprotnom smeru od sledece iteracije
+        if (circlePositionX >= circleBoundRight || circlePositionX <= circleBoundLeft)
+            circleStep = -circleStep;
+
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
         glUseProgram(0);
 
+
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-       
+
+
+        // POKAZIVACI PRAVCA
+
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+            if (!rightIndicatorOn)
+                rightIndicatorOn = true;
+            if (leftIndicatorOn)
+                leftIndicatorOn = false;
+            
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+            if (!leftIndicatorOn)
+                leftIndicatorOn = true;
+            if (rightIndicatorOn) 
+                rightIndicatorOn = false;
+            
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        {
+            rightIndicatorOn = false;
+            leftIndicatorOn = false;
+        }
+
+        if (car.getTurnRightSignal() || rightIndicatorOn) {
+            glUseProgram(textureShader);
+            glBindVertexArray(VAO[7]);
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, rightIndicatorTexture);
+
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
+
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+            glUseProgram(0);
+        }
+
+        if (car.getTurnLeftSignal() || leftIndicatorOn) {
+            glUseProgram(textureShader);
+            glBindVertexArray(VAO[8]);
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, leftIndicatorTexture);
+
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
+
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+            glUseProgram(0);
+        }
 
 
         glfwSwapBuffers(window);
