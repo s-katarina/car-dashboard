@@ -57,11 +57,11 @@ int main(void)
         return 3;
     }
 
-    unsigned int VAO[5];
-    glGenVertexArrays(5, VAO);
+    unsigned int VAO[6];
+    glGenVertexArrays(6, VAO);
 
-    unsigned int VBO[5];
-    glGenBuffers(5, VBO);
+    unsigned int VBO[6];
+    glGenBuffers(6, VBO);
 
 
     // --------------- TEKSTURA BRZINOMETRA  --------------- 
@@ -215,6 +215,31 @@ int main(void)
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO[4]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(speedProgressBarVertices), speedProgressBarVertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+
+    // --------------- DISPLEJ SA KRUGOM  --------------- 
+
+    GLint uniDisplayTrans = glGetUniformLocation(progressBarShader, "trans");
+
+    float displayVertices[] = {
+       -0.2, 0.2,       0.0, 0.0, 0.0,
+       0.2,  0.2,       0.0, 0.0, 0.0,
+       -0.2, -0.2,       0.0, 0.0, 0.0,
+       0.2,  -0.2,       0.0, 0.0, 0.0,
+    };
+
+    glBindVertexArray(VAO[5]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[5]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(displayVertices), displayVertices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -395,6 +420,21 @@ int main(void)
         transSpeed = glm::scale(transSpeed, glm::vec3(speedAmount, 1.0f, 1.0f));
         transSpeed = glm::translate(transSpeed, glm::vec3(0.3f, 0.0f, 0));
         glUniformMatrix4fv(uniGasTrans, 1, GL_FALSE, glm::value_ptr(transSpeed));
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        glUseProgram(0);
+
+
+        // DISPLEJ SA KRUGOM
+
+        glUseProgram(progressBarShader);
+        glBindVertexArray(VAO[5]);
+
+        glm::mat4 transDisplay = glm::mat4(1.0f);
+        transDisplay = glm::translate(transDisplay, glm::vec3(0.4f, -0.4f, 0));
+        glUniformMatrix4fv(uniDisplayTrans, 1, GL_FALSE, glm::value_ptr(transDisplay));
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
