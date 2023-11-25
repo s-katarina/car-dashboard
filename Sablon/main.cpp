@@ -166,8 +166,8 @@ int main(void)
 
     // --------------- PROGRESS BAR ZA GORIVO  --------------- 
 
-    unsigned int gasShader = createShader("gas.vert", "gas.frag");
-    GLint uniGasTrans = glGetUniformLocation(gasShader, "trans");
+    unsigned int progressBarShader = createShader("progressBar.vert", "progressBar.frag");
+    GLint uniGasTrans = glGetUniformLocation(progressBarShader, "trans");
 
     float gasProgressBarVertices[] = {
        -0.3, 0.2,       0.0, 1.0, 0.0,
@@ -195,8 +195,40 @@ int main(void)
     glBindVertexArray(0);
 
 
+    // --------------- PROGRESS BAR ZA DODAVANJE BRZINE  --------------- 
+
+    GLint uniSpeedTrans = glGetUniformLocation(progressBarShader, "trans");
+
+    float speedProgressBarVertices[] = {
+       -0.3, 0.2,       0.0, 0.0, 1.0,
+       0.0,  0.2,       0.0, 0.0, 1.0,
+       -0.3, 0.0,       0.0, 0.0, 1.0,
+       0.0,  0.0,       0.0, 0.0, 1.0,
+
+       -0.3, 0.2,       0.0, 0.0, 0.0,
+       0.0,  0.2,       0.0, 0.0, 0.0,
+       -0.3, 0.0,       0.0, 0.0, 0.0,
+       0.0,  0.0,        0.0, 0.0, 0.0
+    };
+
+    glBindVertexArray(VAO[4]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[4]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(speedProgressBarVertices), speedProgressBarVertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+
     
     startSimulation(&car);
+    float speedAmount = 0;
+
     
     glClearColor(1, 1, 1, 1);
     
@@ -311,7 +343,7 @@ int main(void)
 
         // PROGRES BAR ZA GORIVO
 
-        glUseProgram(gasShader);
+        glUseProgram(progressBarShader);
         glBindVertexArray(VAO[3]);
 
         float gas = car.getFuelAmount();
@@ -335,6 +367,35 @@ int main(void)
 
 
         glfwPollEvents();
+
+
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        {
+            speedAmount += 0.0005;
+            if (speedAmount > 1.0) 
+                speedAmount = 1.0;
+        }
+        else {
+            speedAmount -= 0.00005;
+            if (speedAmount < 0)
+                speedAmount = 0;
+        }
+
+        // PROGRES BAR ZA DODAVANJE BRZINE
+
+        glUseProgram(progressBarShader);
+        glBindVertexArray(VAO[4]);
+
+        glm::mat4 transSpeedMax = glm::mat4(1.0f);
+        transSpeedMax = glm::translate(transSpeedMax, glm::vec3(0.4f, 0.0f, 0));
+        glUniformMatrix4fv(uniGasTrans, 1, GL_FALSE, glm::value_ptr(transSpeedMax));
+        glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
+
+        glm::mat4 transSpeed= glm::mat4(1.0f);
+        transSpeed = glm::scale(transSpeed, glm::vec3(speedAmount, 1.0f, 1.0f));
+        transSpeed = glm::translate(transSpeed, glm::vec3(0.4f, 0.0f, 0));
+        glUniformMatrix4fv(uniGasTrans, 1, GL_FALSE, glm::value_ptr(transSpeed));
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);

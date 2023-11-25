@@ -48,10 +48,10 @@
     <None Include="needle.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="gas.frag">
+    <None Include="progressBar.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
-    <None Include="gas.vert">
+    <None Include="progressBar.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
   </ItemGroup>
