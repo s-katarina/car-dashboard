@@ -205,10 +205,10 @@ int main(void)
        -0.3, 0.0,       0.0, 0.0, 1.0,
        0.0,  0.0,       0.0, 0.0, 1.0,
 
-       -0.3, 0.2,       0.0, 0.0, 0.0,
-       0.0,  0.2,       0.0, 0.0, 0.0,
-       -0.3, 0.0,       0.0, 0.0, 0.0,
-       0.0,  0.0,        0.0, 0.0, 0.0
+       -0.4, 0.2,       0.0, 0.0, 0.0,
+       -0.1,  0.2,       0.0, 0.0, 0.0,
+       -0.4, 0.0,       0.0, 0.0, 0.0,
+       -0.1,  0.0,        0.0, 0.0, 0.0
     };
 
     glBindVertexArray(VAO[4]);
@@ -369,14 +369,14 @@ int main(void)
         glfwPollEvents();
 
 
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
         {
             speedAmount += 0.0005;
             if (speedAmount > 1.0) 
                 speedAmount = 1.0;
         }
         else {
-            speedAmount -= 0.00005;
+            speedAmount -= 0.0005;
             if (speedAmount < 0)
                 speedAmount = 0;
         }
@@ -393,7 +393,7 @@ int main(void)
 
         glm::mat4 transSpeed= glm::mat4(1.0f);
         transSpeed = glm::scale(transSpeed, glm::vec3(speedAmount, 1.0f, 1.0f));
-        transSpeed = glm::translate(transSpeed, glm::vec3(0.4f, 0.0f, 0));
+        transSpeed = glm::translate(transSpeed, glm::vec3(0.3f, 0.0f, 0));
         glUniformMatrix4fv(uniGasTrans, 1, GL_FALSE, glm::value_ptr(transSpeed));
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
