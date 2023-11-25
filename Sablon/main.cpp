@@ -1,6 +1,8 @@
 // Autor: Bogdan Davinic
 
 #define _CRT_SECURE_NO_WARNINGS
+#define CRES 30 // Circle Resolution = Rezolucija kruga
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -57,11 +59,11 @@ int main(void)
         return 3;
     }
 
-    unsigned int VAO[6];
-    glGenVertexArrays(6, VAO);
+    unsigned int VAO[7];
+    glGenVertexArrays(7, VAO);
 
-    unsigned int VBO[6];
-    glGenBuffers(6, VBO);
+    unsigned int VBO[7];
+    glGenBuffers(7, VBO);
 
 
     // --------------- TEKSTURA BRZINOMETRA  --------------- 
@@ -105,8 +107,8 @@ int main(void)
     // --------------- KAZALJKA  --------------- 
 
     // boje red i blue
-    float r = 0.0;
-    float b = 1.0;
+    float red = 0.0;
+    float blue = 1.0;
 
     unsigned int stripShader = createShader("needle.vert", "needle.frag");
     unsigned int uR = glGetUniformLocation(stripShader, "uR");
@@ -230,10 +232,10 @@ int main(void)
     GLint uniDisplayTrans = glGetUniformLocation(progressBarShader, "trans");
 
     float displayVertices[] = {
-       -0.2, 0.2,       0.0, 0.0, 0.0,
-       0.2,  0.2,       0.0, 0.0, 0.0,
-       -0.2, -0.2,       0.0, 0.0, 0.0,
-       0.2,  -0.2,       0.0, 0.0, 0.0,
+       -0.3, 0.3,       0.0, 0.0, 0.0,
+       0.3,  0.3,       0.0, 0.0, 0.0,
+       -0.3, -0.3,       0.0, 0.0, 0.0,
+       0.3,  -0.3,       0.0, 0.0, 0.0,
     };
 
     glBindVertexArray(VAO[5]);
@@ -249,6 +251,29 @@ int main(void)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    // ----- KRUG -----
+    unsigned int circleShader = createShader("progressBar.vert", "circle.frag");
+
+    GLint uniCircleTrans = glGetUniformLocation(circleShader, "trans");
+
+    float circle[CRES * 2 + 4]; // +4 je za x i y koordinate centra kruga, i za x i y od nultog ugla
+    float r = 0.1; 
+
+    circle[0] = 0; //Centar X0
+    circle[1] = 0; //Centar Y0
+    int i;
+    for (i = 0; i <= CRES; i++)
+    {
+
+        circle[2 + 2 * i] = r * cos((3.141592 / 180) * (i * 360 / CRES)); //Xi
+        circle[2 + 2 * i + 1] = r * sin((3.141592 / 180) * (i * 360 / CRES)); //Yi
+    }
+
+    glBindVertexArray(VAO[6]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[6]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(circle), circle, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
 
     
     startSimulation(&car);
@@ -290,8 +315,8 @@ int main(void)
         glUseProgram(stripShader);
         glBindVertexArray(VAO[1]);
 
-        glUniform1f(uR, r);
-        glUniform1f(uB, b);
+        glUniform1f(uR, red);
+        glUniform1f(uB, blue);
 
 
         float speed = car.getSpeed();
@@ -319,12 +344,12 @@ int main(void)
 
         // postavka boje kazaljke
         if (speed > 30) {
-            r = 1.0;
-            b = 0.0;
+            red = 1.0;
+            blue = 0.0;
         }
         else {
-            r = 0.0;
-            b = 1.0;
+            red = 0.0;
+            blue = 1.0;
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -440,6 +465,40 @@ int main(void)
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
         glUseProgram(0);
+
+        // KRUG
+
+        if (speed < 10)
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+            glEnable(GL_PROGRAM_POINT_SIZE);
+            glPointSize(4);
+        }
+        if (speed >= 10 && speed <= 30)
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
+        if ( speed > 30) {
+            std::cout << "Yes\n";
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+
+        
+        glUseProgram(circleShader);
+        glBindVertexArray(VAO[6]);
+        glm::mat4 transCircle = glm::mat4(1.0f);
+        transCircle = glm::translate(transCircle, glm::vec3(0.4f, -0.4f, 0));
+        transCircle = glm::scale(transCircle, glm::vec3(1.0f, 1200.0f/600.0f, 1.0f));
+        glUniformMatrix4fv(uniCircleTrans, 1, GL_FALSE, glm::value_ptr(transCircle));
+        glDrawArrays(GL_TRIANGLE_FAN, 0, sizeof(circle) / (2 * sizeof(float)));
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        glUseProgram(0);
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+       
+
 
         glfwSwapBuffers(window);
     }

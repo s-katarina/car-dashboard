@@ -54,6 +54,12 @@
     <None Include="progressBar.vert">
       <Filter>Source Files\Shader Files</Filter>
     </None>
+    <None Include="circle.frag">
+      <Filter>Source Files\Shader Files</Filter>
+    </None>
+    <None Include="circle.vert">
+      <Filter>Source Files\Shader Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestBed.h">

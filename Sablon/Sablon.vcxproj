@@ -146,6 +146,8 @@
     <ClCompile Include="TestBed.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="circle.frag" />
+    <None Include="circle.vert" />
     <None Include="progressBar.frag" />
     <None Include="progressBar.vert" />
     <None Include="gear.frag" />
