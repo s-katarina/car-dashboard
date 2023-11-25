@@ -57,11 +57,11 @@ int main(void)
         return 3;
     }
 
-    unsigned int VAO[3];
-    glGenVertexArrays(3, VAO);
+    unsigned int VAO[5];
+    glGenVertexArrays(5, VAO);
 
-    unsigned int VBO[3];
-    glGenBuffers(3, VBO);
+    unsigned int VBO[5];
+    glGenBuffers(5, VBO);
 
 
     // --------------- TEKSTURA BRZINOMETRA  --------------- 
@@ -164,6 +164,37 @@ int main(void)
     glBindVertexArray(0);
 
 
+    // --------------- PROGRESS BAR ZA GORIVO  --------------- 
+
+    unsigned int gasShader = createShader("gas.vert", "gas.frag");
+    GLint uniGasTrans = glGetUniformLocation(gasShader, "trans");
+
+    float gasProgressBarVertices[] = {
+       -0.3, 0.2,       0.0, 1.0, 0.0,
+       0.0,  0.2,       0.0, 1.0, 0.0,
+       -0.3, 0.0,       0.0, 1.0, 0.0,
+       0.0,  0.0,       0.0, 1.0, 0.0,
+
+       -0.3, 0.2,       0.0, 0.0, 0.0,
+       0.0,  0.2,       0.0, 0.0, 0.0,
+       -0.3, 0.0,       0.0, 0.0, 0.0,
+       0.0,  0.0,        0.0, 0.0, 0.0
+    };
+
+    glBindVertexArray(VAO[3]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[3]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(gasProgressBarVertices), gasProgressBarVertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+
     
     startSimulation(&car);
     
@@ -208,10 +239,8 @@ int main(void)
 
         float speed = car.getSpeed();
         std::cout << "Speed: " << speed << "\n";
+
         // 180/100 znaci da brzinomer ima 100 podeoka rasporedjeni na polukrugu od 180 stepeni, ugao kazaljke je brzina * podeok 
-       
-        float minAngle = 0.0;
-        float maxAngle = 180.0;
         // oduzimanje "- (180.00 / 100.00) / 2" da se centar kazaljke postavi na podeok
         float angle = speed * (180.00 / 100.00) - (180.00 / 100.00) / 2;
 
@@ -275,6 +304,35 @@ int main(void)
         }
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        glUseProgram(0);
+
+        // PROGRES BAR ZA GORIVO
+
+        glUseProgram(gasShader);
+        glBindVertexArray(VAO[3]);
+
+        float gas = car.getFuelAmount();
+        std::cout << "Gas: " << gas << "\n";
+
+
+        glm::mat4 transGasMax = glm::mat4(1.0f);
+        transGasMax = glm::translate(transGasMax, glm::vec3(-0.4f, 0.0f, 0));
+        glUniformMatrix4fv(uniGasTrans, 1, GL_FALSE, glm::value_ptr(transGasMax));
+        glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
+
+        glm::mat4 transGas = glm::mat4(1.0f);
+        transGas = glm::scale(transGas, glm::vec3(gas / car.getMaxFuelAmount(), 1.0f, 1.0f));
+        transGas = glm::translate(transGas, glm::vec3(-0.4f, 0.0f, 0));
+        glUniformMatrix4fv(uniGasTrans, 1, GL_FALSE, glm::value_ptr(transGas));
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        glUseProgram(0);
+
 
         glfwPollEvents();
 

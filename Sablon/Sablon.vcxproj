@@ -146,6 +146,8 @@
     <ClCompile Include="TestBed.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="gas.frag" />
+    <None Include="gas.vert" />
     <None Include="gear.frag" />
     <None Include="gear.vert" />
     <None Include="packages.config" />

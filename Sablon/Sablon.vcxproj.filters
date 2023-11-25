@@ -48,6 +48,12 @@
     <None Include="needle.frag">
       <Filter>Source Files\Shader Files</Filter>
     </None>
+    <None Include="gas.frag">
+      <Filter>Source Files\Shader Files</Filter>
+    </None>
+    <None Include="gas.vert">
+      <Filter>Source Files\Shader Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestBed.h">
