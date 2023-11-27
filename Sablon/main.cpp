@@ -59,11 +59,11 @@ int main(void)
         return 3;
     }
 
-    unsigned int VAO[9];
-    glGenVertexArrays(9, VAO);
+    unsigned int VAO[10];
+    glGenVertexArrays(10, VAO);
 
-    unsigned int VBO[9];
-    glGenBuffers(9, VBO);
+    unsigned int VBO[10];
+    glGenBuffers(10, VBO);
 
 
     // --------------- TEKSTURA BRZINOMETRA  --------------- 
@@ -291,15 +291,6 @@ int main(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);   //GL_NEAREST, GL_LINEAR
     glBindTexture(GL_TEXTURE_2D, 0);
-    //unsigned uTexLoc = glGetUniformLocation(textureShader, "uTex");
-    //glUniform1i(uTexLoc, 0); // Indeks teksturne jedinice (sa koje teksture ce se citati boje)
-
-    /*float leftIndicatorVertices[] = {
-         0.4, 0.9,          0.0, 1.0,
-         0.6, 0.9,	        1.0, 1.0,
-         0.4, 0.7,	        0.0, 0.0,
-         0.6, 0.7,	        1.0, 0.0,
-    };*/
 
     float rightIndicatorVertices[] = {
          0.7, 0.9,          0.0, 1.0,
@@ -344,6 +335,41 @@ int main(void)
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO[8]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(leftIndicatorVertices), leftIndicatorVertices, GL_STATIC_DRAW);
+
+    // na lokaciju 0 (za ulaz u vertex shader) idu koordinate
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(0));
+    glEnableVertexAttribArray(0);
+    // na lokaciju 1 idu koordinate teksture pridruzene temenu 
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+
+    // --------------- TEKSTURA IMENA I PREZIMENA  --------------- 
+
+
+    unsigned nameTexture = loadImageToTexture("res/ime.jpg");
+    glBindTexture(GL_TEXTURE_2D, nameTexture);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);//S = U = X    GL_REPEAT, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);// T = V = Y
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);   //GL_NEAREST, GL_LINEAR
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    float nameVertices[] = {
+         0.6, -0.8,          0.0, 1.0,
+         1.0, -0.8,	         1.0, 1.0,
+         0.6, -1.0,	         0.0, 0.0,
+         1.0, -1.0,	         1.0, 0.0,
+    };
+
+    glBindVertexArray(VAO[9]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[9]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(nameVertices), nameVertices, GL_STATIC_DRAW);
 
     // na lokaciju 0 (za ulaz u vertex shader) idu koordinate
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(0));
@@ -657,6 +683,22 @@ int main(void)
             glUseProgram(0);
         }
 
+        // IME
+
+        glUseProgram(textureShader);
+        glBindVertexArray(VAO[9]);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, nameTexture);
+
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glDrawArrays(GL_TRIANGLE_STRIP, 4, 4);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        glUseProgram(0);
 
         glfwSwapBuffers(window);
     }
